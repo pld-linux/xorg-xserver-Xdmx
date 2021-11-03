@@ -32,6 +32,7 @@ Source0:	https://xorg.freedesktop.org/releases/individual/xserver/xorg-server-%{
 # Source0-md5:	9acb2a51507e6056b09e3d3f19565419
 Patch0:		xorg-xserver-server-builtin-SHA1.patch
 Patch1:		110_nvidia_slowdow_fix.patch
+Patch2:		%{name}-fix.patch
 URL:		https://xorg.freedesktop.org/
 BuildRequires:	Mesa-dri-devel >= 7.8.1
 %{?with_dri2:BuildRequires:	Mesa-dri-devel >= 9.2.0}
@@ -134,6 +135,7 @@ Xdmx - rozproszony, wielomonitorowy serwer X.
 %setup -q -n xorg-server-%{version}
 %patch0 -p1
 %patch1 -p1
+%patch2 -p1
 
 # xserver uses pixman-1 API/ABI so put that explictly here
 sed -i -e 's#<pixman\.h#<pixman-1/pixman.h#g' ./fb/fb.h ./include/miscstruct.h ./render/picture.h

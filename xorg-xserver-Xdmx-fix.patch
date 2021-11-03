@@ -1,0 +1,67 @@
+[PATCH xserver 05/12] glxproxy: Fix __glXActiveScreens allocation
+
+Apparently this has been broken for about ten years, eesh. We were never
+allocating any storage for this array, so the first attempt at using GLX
+with Xdmx would crash the server.
+
+Promote it to an array and use __glXNumActiveScreens to detect whether
+GLX is actually enabled.
+
+Bugzilla: https://bugs.freedesktop.org/show_bug.cgi?id=34851
+Signed-off-by: Adam Jackson <ajax at redhat.com>
+---
+ hw/dmx/glxProxy/glxscreens.c | 2 +-
+ hw/dmx/glxProxy/glxserver.h  | 2 +-
+ hw/dmx/glxProxy/glxvisuals.c | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/hw/dmx/glxProxy/glxscreens.c b/hw/dmx/glxProxy/glxscreens.c
+index 508e67ed4..8c5f08beb 100644
+--- a/hw/dmx/glxProxy/glxscreens.c
++++ b/hw/dmx/glxProxy/glxscreens.c
+@@ -45,7 +45,7 @@
+ #include "panoramiXsrv.h"
+ #endif
+ 
+-__GLXscreenInfo *__glXActiveScreens;
++__GLXscreenInfo __glXActiveScreens[MAXSCREENS];
+ GLint __glXNumActiveScreens;
+ 
+ __GLXFBConfig **__glXFBConfigs;
+diff --git a/hw/dmx/glxProxy/glxserver.h b/hw/dmx/glxProxy/glxserver.h
+index 7aa5ad2f2..f708f86ee 100644
+--- a/hw/dmx/glxProxy/glxserver.h
++++ b/hw/dmx/glxProxy/glxserver.h
+@@ -73,7 +73,7 @@ typedef struct __GLXcontextRec *GLXContext;
+ */
+ typedef struct __GLXclientStateRec __GLXclientState;
+ 
+-extern __GLXscreenInfo *__glXActiveScreens;
++extern __GLXscreenInfo __glXActiveScreens[MAXSCREENS];
+ extern GLint __glXNumActiveScreens;
+ 
+ /************************************************************************/
+diff --git a/hw/dmx/glxProxy/glxvisuals.c b/hw/dmx/glxProxy/glxvisuals.c
+index 3fca04f0d..9bde29afd 100644
+--- a/hw/dmx/glxProxy/glxvisuals.c
++++ b/hw/dmx/glxProxy/glxvisuals.c
+@@ -105,7 +105,7 @@ glxMatchVisualInConfigList(ScreenPtr pScreen, VisualPtr pVisual,
+     int i;
+ 
+     /* check that the glx extension has been initialized */
+-    if (!__glXActiveScreens)
++    if (!__glXNumActiveScreens)
+         return 0;
+ 
+     pGlxScreen = &__glXActiveScreens[pScreen->myNum];
+@@ -135,7 +135,7 @@ glxMatchVisual(ScreenPtr pScreen, VisualPtr pVisual, ScreenPtr pMatchScreen)
+     VisualID vid;
+ 
+     /* check that the glx extension has been initialized */
+-    if (!__glXActiveScreens)
++    if (!__glXNumActiveScreens)
+         return NULL;
+ 
+     pGlxScreen2 = &__glXActiveScreens[pMatchScreen->myNum];
+-- 
+2.13.0
